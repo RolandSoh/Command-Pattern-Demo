@@ -23,19 +23,46 @@ public class BattleController : MonoBehaviour
             // Get mousePosition
             Vector2 mousePosition = Input.mousePosition;
 
-            AddMoveToPositionCommand(mousePosition);
+            _AddMoveToPositionCommand(mousePosition);
+        }
+
+        // check if spacebar is pressed
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _OnSpacebarPressed();
         }
     }
 
+    /* =========================== TRIGGERED EVENTS =========================== */
+    // Called by button
+    public void OnAddAttackCommand()
+    {
+        Sequence seq = _CreateDoCastSkillSequence();
+        ICommand doAttackCommand = new Command(seq);
+
+        _commandSystem.AddCommand(doAttackCommand);
+    }
+
+    private void _OnSpacebarPressed()
+    {
+        Sequence seq = _CreateDelayedSequence();
+        ICommand delayedCommand = new Command(seq);
+
+        _commandSystem.AddCommand(delayedCommand);
+    }
+
     // Adds a command to move the dummy to the given position
-    private void AddMoveToPositionCommand(Vector2 position)
+    private void _AddMoveToPositionCommand(Vector2 position)
     {
         Sequence seq = _CreateMoveToPositionSequence(position);
         ICommand moveToPositionCommand = new Command(seq);
 
         _commandSystem.AddCommand(moveToPositionCommand);
     }
+    /* ========================================================================= */
 
+
+    /* ========================== COMMAND CREATION ============================ */
     private Sequence _CreateMoveToPositionSequence(Vector2 position)
     {
         Sequence seq = DOTween.Sequence();
@@ -47,14 +74,16 @@ public class BattleController : MonoBehaviour
         return seq;
     }
 
-    // Called by button
-    public void OnAddAttackCommand()
+    private Sequence _CreateDelayedSequence()
     {
-        Sequence seq = _CreateDoCastSkillSequence();
-        ICommand doAttackCommand = new Command(seq);
+        Sequence seq = DOTween.Sequence();
+        seq.Pause(); // This is mandatory
 
-        _commandSystem.AddCommand(doAttackCommand);
-        
+        seq.AppendInterval(0.5f);
+        seq.Append(dummy.transform.DOPunchScale(new Vector3(1, 1, 1), 0.25f));
+        seq.AppendInterval(0.5f);
+
+        return seq;
     }
 
     private Sequence _CreateDoCastSkillSequence()
@@ -68,4 +97,5 @@ public class BattleController : MonoBehaviour
 
         return seq;
     }
+    /* ========================================================================= */
 }
